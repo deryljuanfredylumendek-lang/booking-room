@@ -44,6 +44,7 @@ Route::middleware('auth')->group(function () {
 
     Route::resource('booking', BookingListController::class);
     Route::get('my-booking-list', [RouteController::class, 'viewBookList'])->name('book-list');
+    Route::get('booking/{id}/request-reschedule', [BookingController::class, 'requestReschedule'])->name('booking.request-reschedule');
     Route::get('reschedule', [BookingController::class, 'viewReschedule'])->name('reschedule-view');
     Route::get('rescheduling/{id}', [BookingController::class, 'rescheduleBooking'])->name('reschedule');
 

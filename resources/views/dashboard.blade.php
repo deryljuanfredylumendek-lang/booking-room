@@ -75,6 +75,54 @@
           {{-- <small class="text-success fw-semibold"><i class="bx bx-up-arrow-alt"></i> +28.14%</small> --}}
         </div>
       </div>
+
+      <div class="card mt-4">
+        <div class="card-header">
+          <div class="d-flex align-items-center justify-content-between">
+            <div>
+              <h5 class="card-title mb-0">Permintaan Reschedule Terbaru</h5>
+              <small class="text-muted">Lihat alasan reschedule dari user yang sudah diajukan.</small>
+            </div>
+            <span class="badge bg-info">{{ $rescheduleRequests->count() }} terbaru</span>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          @if($rescheduleRequests->isEmpty())
+            <div class="alert alert-secondary mb-0">
+              Tidak ada permintaan reschedule baru.
+            </div>
+          @else
+            <div class="table-responsive">
+              <table class="table table-hover mb-0">
+                <thead class="table-light">
+                  <tr>
+                    <th>User</th>
+                    <th>Ruangan</th>
+                    <th>Tanggal</th>
+                    <th>Alasan</th>
+                    <th>Status Booking</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @foreach($rescheduleRequests as $request)
+                  <tr>
+                    <td>{{ $request->user->name ?? '-' }}</td>
+                    <td>{{ $request->room->name ?? '-' }}</td>
+                    <td>{{ optional($request->bookingList->date)->format('Y-m-d') ?? '-' }}</td>
+                    <td class="text-wrap">{{ $request->message ?? '-' }}</td>
+                    <td>
+                      <span class="badge bg-label-{{ $request->bookingList->status == 'rejected' ? 'danger' : ($request->bookingList->status == 'approved' ? 'success' : 'info') }}">
+                        {{ $request->bookingList->status ?? '-' }}
+                      </span>
+                    </td>
+                  </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          @endif
+        </div>
+      </div>
     </div>
     <div class="col-md-2">
       <a href="{{ route('room.index') }}">

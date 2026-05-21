@@ -16,7 +16,14 @@
           <tr>
             <td>{{ $loop->iteration }}</td>
             <td class="text-center">
-              @if(isset($room->photo)) <img src="{{ asset($room->photo) }}" style="object-fit: cover;" height="125" alt="Photo Ruangan {{ $room->name }}"> @else - @endif
+              @if(!empty($room->photo))
+                @php
+                  $photoUrl = str_starts_with($room->photo, 'storage/') ? asset($room->photo) : asset('storage/' . $room->photo);
+                @endphp
+                <img src="{{ $photoUrl }}" style="object-fit: cover;" height="125" alt="Photo Ruangan {{ $room->name }}">
+              @else
+                -
+              @endif
             </td>
             <td>
               <div class="text-primary me-3">

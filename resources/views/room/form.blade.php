@@ -5,7 +5,8 @@
   $capacity = isset($room) ? $room->capacity : null;
   $status = isset($room) ? $room->status : null;
 
-  $url = isset($room) ? "/admin/room/$room->id" : '/room';
+  
+  $url = isset($room) ? route('room.update', $room->id) : route('room.store');
   $method = isset($room) ? 'PUT' : 'POST';
   $title = isset($room) ? 'Ubah Data Ruangan' : 'Tambah Data Ruangan';
 @endphp
@@ -39,7 +40,7 @@
             <span id="formFile2" class="input-group-text"
               ><i class="bx bx-file"></i
             ></span>
-            <input class="form-control" name="photo" type="file" value="{{ $photo }}" id="formFile" aria-describedby="formFile2" accept="image/*">
+            <input class="form-control" name="photo" type="file" value="{{ $photo }}" id="formFile" aria-describedby="formFile2" accept="image/*" @if(!isset($room)) required @endif>
           </div>
         </div>
         <div class="mb-3">

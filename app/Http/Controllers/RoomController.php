@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Room;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class RoomController extends Controller
 {
@@ -46,8 +47,17 @@ class RoomController extends Controller
      */
     public function store(Request $request)
     {
-        $fileName = str_replace(' ', '_', strtolower($request->name)) . '.' . $request->file('photo')->extension();
-        $request->file('photo')->storeAs('public/room', $fileName);
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'capacity' => 'required|integer|min:2',
+            'status' => 'required|in:able,disable',
+            'photo' => 'required|image|max:2048',
+        ]);
+
+        $file = $request->file('photo');
+        $fileName = str_replace(' ', '_', strtolower($request->name)) . '.' . $file->extension();
+        Storage::putFileAs('public/room', $file, $fileName);
 
         $photo = 'storage/room/' . $fileName;
 
@@ -102,7 +112,7 @@ class RoomController extends Controller
 
         if ($request->file('photo')) {
             $fileName = str_replace(' ', '_', strtolower($request->name)) . '.' . $request->file('photo')->extension();
-            $request->file('photo')->storeAs('public/room', $fileName);
+            Storage::putFileAs('public/room', $request->file('photo'), $fileName);
 
             $photo = 'storage/room/' . $fileName;
 

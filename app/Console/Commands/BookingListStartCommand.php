@@ -39,9 +39,9 @@ class BookingListStartCommand extends Command
     public function handle()
     {
         $lists = BookingList::whereStatus('approved')
-                            ->where('date', '=', now())
-                            ->where('start', '>=', now())
-                            ->where('end', '=<', now())
+                            ->whereDate('date', now())
+                            ->whereTime('start', '<=', now())
+                            ->whereTime('end', '>=', now())
                             ->get();
 
         foreach ($lists as $list) {
@@ -50,7 +50,7 @@ class BookingListStartCommand extends Command
             ]);
         }
 
-        $this->info('Set Status booking to used done.');
+        $this->info('Set Status booking to used for ongoing bookings.');
 
         return 0;
     }

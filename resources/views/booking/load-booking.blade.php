@@ -39,6 +39,7 @@
             </td>
             <td class="text-wrap">{{ $list->need }}</td>
             <td>
+              @php $statusLabel = $list->status; @endphp
               @switch($list->status)
                 @case('pending')
                   @php $badge = 'info' @endphp
@@ -50,13 +51,13 @@
                   @php $badge = 'danger' @endphp
                   @break
                 @case('used')
-                  @php $badge = 'warning' @endphp
+                  @php $badge = 'warning'; $statusLabel = 'On Going'; @endphp
                   @break
                 @case('canceled')
                   @php $badge = 'dark' @endphp
                   @break
                 @case('done')
-                  @php $badge = 'primary' @endphp
+                  @php $badge = 'primary'; $statusLabel = 'Finish'; @endphp
                   @break
                 @case('expired')
                   @php $badge = 'secondary' @endphp
@@ -68,7 +69,7 @@
                 @default
                   
               @endswitch
-              <span class="badge bg-label-{{ $badge }} me-1">{{ $list->status }}</span>
+              <span class="badge bg-label-{{ $badge }} me-1">{{ $statusLabel }}</span>
             </td>
             @admin 
             <td class="text-end">
@@ -87,25 +88,34 @@
               </div>
             </td>
             @else
+            @php $canModify = $list->date->gt(now()->addDay()); @endphp
             <td class="text-end">
-              <div class="dropdown">
-                <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                  <i class="bx bx-dots-vertical-rounded"></i>
-                </button>
-                @if($list->status == 'pending')
+              @if($canModify && in_array($list->status, ['pending', 'approved']))
+                <div class="dropdown">
+                  <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                    <i class="bx bx-dots-vertical-rounded"></i>
+                  </button>
                   <div class="dropdown-menu">
-                    <a class="dropdown-item" href="{{ route('booking.edit', $list->id) }}"
-                      ><i class="bx bx-edit-alt me-1"></i> Edit</a
-                    >
+                    @if($list->status == 'pending')
+                      <a class="dropdown-item" href="{{ route('booking.edit', $list->id) }}"
+                        ><i class="bx bx-edit-alt me-1"></i> Edit</a
+                      >
+                      <a class="dropdown-item" href="#" onclick="openModal('{{ $list->id }}', '{{ $list->room_id }}', 'batalkan')"
+                        ><i class="bx bx-trash me-1"></i> Batalkan</a
+                      >
+                    @elseif($list->status == 'approved')
+                      <a class="dropdown-item" href="#" onclick="openModal('{{ $list->id }}', '{{ $list->room_id }}', 'reschedule')"
+                        ><i class="bx bx-refresh me-1"></i> Reschedule</a
+                      >
+                      <a class="dropdown-item" href="#" onclick="openModal('{{ $list->id }}', '{{ $list->room_id }}', 'batalkan')"
+                        ><i class="bx bx-trash me-1"></i> Batalkan</a
+                      >
+                    @endif
                   </div>
-                @elseif($list->status == 'approved')
-                  <div class="dropdown-menu">
-                    <a class="dropdown-item" href="#" onclick="openModal('{{ $list->id }}', '{{ $list->room_id }}', 'batalkan')"
-                      ><i class="bx bx-edit-alt me-1"></i> Batalkan</a
-                    >
-                  </div>
-                @endif
-              </div>
+                </div>
+              @else
+                <span class="text-muted small">Tidak bisa diubah dalam 2 hari sebelum jadwal</span>
+              @endif
             </td>
             @endadmin
           </tr>

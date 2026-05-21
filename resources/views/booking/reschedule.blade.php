@@ -41,8 +41,14 @@
 
 @section('content')
   <div class="card">
-    <h5 class="card-header">Reschedule List </h5>
-    <div id="load-table"></div>
+    <div class="card-header d-flex align-items-center justify-content-between">
+      <h5 class="mb-0">Reschedule List</h5>
+      <span class="badge bg-primary">{{ $reschedules->count() }} permintaan</span>
+    </div>
+    <div class="card-body">
+      <p class="text-muted mb-3">Lihat semua permintaan reschedule dan tanggapan pada booking Anda. Reschedule yang sudah dikonfirmasi akan diarahkan ke halaman edit booking.</p>
+      <div id="load-table"></div>
+    </div>
   </div>
 @endsection
 

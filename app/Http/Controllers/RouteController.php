@@ -27,13 +27,14 @@ class RouteController extends Controller
                 'total' => BookingList::all()->count(),
                 'room' => Room::all()->count(),
                 'user' => User::all()->count(),
+                'rescheduleRequests' => Reschedule::with(['user', 'room', 'bookingList'])->orderByDesc('created_at')->take(5)->get(),
             ];
         } elseif (Auth::user()->role == 'user') {
             $data = [
                 'today' => BookingList::where('user_id', Auth::user()->id)->where('date', '=', now()->format('Y-m-d'))->get()->count(),
                 'myList' => BookingList::where('user_id', Auth::user()->id)->get()->count(),
                 'today_lists' => BookingList::where('user_id', Auth::user()->id)->whereStatus('approved')->where('date', '=', now()->format('Y-m-d'))->get(),
-                'rescheduled' => Reschedule::where('user_id', Auth::user()->id)->where('reschedule', null)->get()->count(),
+                'rescheduled' => Reschedule::where('user_id', Auth::user()->id)->count(),
             ];
         }
         return view('dashboard', $data);
@@ -62,7 +63,10 @@ class RouteController extends Controller
                 $lists = BookingList::orderBy('date', 'desc')->get();
             } elseif (Auth::user()->role == 'user') {
                 $user_id = Auth::user()->id;
-                $lists = BookingList::where('user_id', $user_id)->orderBy('date', 'desc')->get();
+                $lists = BookingList::where('user_id', $user_id)
+                                    ->where('status', '!=', 'rescheduled')
+                                    ->orderBy('date', 'desc')
+                                    ->get();
             }
             
             if (request()->ajax()) {

@@ -38,10 +38,14 @@ class BookingListFinishCommand extends Command
      */
     public function handle()
     {
-        $lists = BookingList::whereStatus('used')
-                            ->where('date', '<=', now())
-                            ->where('start', '<', now())
-                            ->where('end', '<', now())
+        $lists = BookingList::whereIn('status', ['used', 'approved'])
+                            ->where(function ($query) {
+                                $query->whereDate('date', '<', now())
+                                      ->orWhere(function ($query) {
+                                          $query->whereDate('date', now())
+                                                ->whereTime('end', '<', now());
+                                      });
+                            })
                             ->get();
 
         foreach ($lists as $list) {
@@ -50,7 +54,7 @@ class BookingListFinishCommand extends Command
             ]);
         }
 
-        $this->info('Set Status booking to done finished.');
+        $this->info('Set Status booking to done for finished bookings.');
 
         return 0;
     }

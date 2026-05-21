@@ -1,8 +1,8 @@
 @php
   $room_id = isset($bookingList) ? $bookingList->room_id : null;
   $date = isset($bookingList) ? $bookingList->date->format('Y-m-d') : null;
-  $start = isset($bookingList) ? $bookingList->start->format('Y-m-d') : null;
-  $end = isset($bookingList) ? $bookingList->end->format('Y-m-d') : null;
+  $start = isset($bookingList) ? $bookingList->start->format('H:i') : null;
+  $end = isset($bookingList) ? $bookingList->end->format('H:i') : null;
   $need = isset($bookingList) ? $bookingList->need : null;
  
   $url = isset($bookingList) ? "/booking/$bookingList->id" : '/booking';
@@ -30,6 +30,15 @@
   <div class="card">
     <div class="card-header">{{ $title }}</div>
     <div class="card-body">
+      @if ($errors->any())
+        <div class="alert alert-danger">
+          <ul class="mb-0">
+            @foreach ($errors->all() as $error)
+              <li>{{ $error }}</li>
+            @endforeach
+          </ul>
+        </div>
+      @endif
       <form action="{{ $url }}" method="POST">
         @csrf
         @method($method)
@@ -38,9 +47,9 @@
           <div class="input-group input-group-merge">
             <span id="basic-icon-default-room2" class="input-group-text">Pilih Ruangan</span>
             <select class="form-select" name="room_id" id="basic-icon-default-room" required @if($method == 'PUT') disabled @endif>
-              <option selected="">Choose...</option>
+              <option value="">Choose...</option>
               @foreach ($rooms as $room)
-                <option value="{{ $room->id }}" @if($room_id == $room->id) selected @endif>{{ $room->name }}</option>
+                <option value="{{ $room->id }}" @selected(old('room_id', $room_id) == $room->id)>{{ $room->name }}</option>
               @endforeach
             </select>
           </div>
@@ -51,19 +60,19 @@
             {{-- <span id="basic-icon-default-listname2" class="input-group-text"
               ><i class="bx bx-list-circle"></i
             ></span> --}}
-            <input class="form-control" type="date" name="date" value="{{ $date }}" id="basic-icon-default-date" required />
+            <input class="form-control" type="date" name="date" value="{{ old('date', $date) }}" id="basic-icon-default-date" required />
           </div>
         </div>
         <div class="mb-3">
           <label class="form-label" for="basic-icon-default-start">Waktu Mulai</label>
           <div class="input-group input-group-merge">
-            <input class="form-control" type="time" name="start" value="{{ $start }}" id="basic-icon-default-start" required />
+            <input class="form-control" type="time" name="start" value="{{ old('start', $start) }}" id="basic-icon-default-start" required />
           </div>
         </div>
         <div class="mb-3">
           <label class="form-label" for="basic-icon-default-end">Waktu Selesai</label>
           <div class="input-group input-group-merge">
-            <input class="form-control" type="time" name="end" value="{{ $end }}" id="basic-icon-default-end" required />
+            <input class="form-control" type="time" name="end" value="{{ old('end', $end) }}" id="basic-icon-default-end" required />
           </div>
         </div>
         <div class="mb-3">
@@ -80,10 +89,10 @@
               aria-label="..."
               aria-describedby="basic-icon-default-need2"
               required
-            >{{ $need }}</textarea>
+            >{{ old('need', $need) }}</textarea>
           </div>
         </div>
-        <button type="submit" class="btn btn-primary">Send</button>
+        <button type="submit" class="btn btn-primary">Simpan</button>
       </form>
     </div>
   </div>

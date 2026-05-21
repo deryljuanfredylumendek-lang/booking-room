@@ -40,9 +40,13 @@ class BookingListExpiredCommand extends Command
     public function handle()
     {
         $lists = BookingList::whereStatus('pending')
-                            ->where('date', '<', now())
-                            ->where('start', '<', now())
-                            ->where('end', '<', now())
+                            ->where(function ($query) {
+                                $query->whereDate('date', '<', now())
+                                      ->orWhere(function ($query) {
+                                          $query->whereDate('date', now())
+                                                ->whereTime('end', '<', now());
+                                      });
+                            })
                             ->get();
 
         foreach ($lists as $list) {

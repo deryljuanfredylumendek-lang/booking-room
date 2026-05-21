@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\BookingList;
 use App\Models\Room;
+use App\Models\RoomBooking;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
@@ -39,6 +41,20 @@ class BookingListController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'room_id' => 'required|exists:rooms,id',
+            'date' => 'required|date',
+            'start' => 'required|date_format:H:i',
+            'end' => 'required|date_format:H:i|after:start',
+            'need' => 'required|string|max:255',
+        ], [
+            'end.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
+        ]);
+
+        if ($this->hasSameDateBookingConflict($request->room_id, $request->date, $request->start, $request->end)) {
+            return redirect()->back()->withErrors(['error' => 'Booking pada tanggal yang sama harus memiliki jarak minimal 1 jam dengan booking lain.'])->withInput();
+        }
+
         BookingList::create([
             'user_id' => Auth::user()->id,
             'room_id' => $request->room_id,
@@ -74,6 +90,14 @@ class BookingListController extends Controller
         $rooms = Room::all();
         $bookingList = BookingList::find($id);
 
+        if (!$bookingList || $bookingList->user_id !== Auth::user()->id) {
+            abort(404);
+        }
+
+        if ($bookingList->date->lte(now()->addDay()) && in_array($bookingList->status, ['pending', 'approved'])) {
+            return redirect()->route('book-list')->withErrors(['error' => 'Booking tidak bisa diubah dalam waktu 2 hari sebelum tanggal acara.']);
+        }
+
         return view('booking.form', compact('bookingList', 'rooms'));
     }
 
@@ -88,6 +112,31 @@ class BookingListController extends Controller
     {
         $bookingList = BookingList::find($id);
 
+        if (!$bookingList || $bookingList->user_id !== Auth::user()->id) {
+            abort(404);
+        }
+
+        if ($bookingList->date->lte(now()->addDay()) && in_array($bookingList->status, ['pending', 'approved'])) {
+            return redirect()->route('book-list')->withErrors(['error' => 'Booking tidak bisa diubah dalam waktu 2 hari sebelum tanggal acara.']);
+        }
+
+        $request->validate([
+            'date' => 'required|date',
+            'start' => 'required|date_format:H:i',
+            'end' => 'required|date_format:H:i|after:start',
+            'need' => 'required|string|max:255',
+        ], [
+            'end.after' => 'Waktu selesai harus lebih besar dari waktu mulai.',
+        ]);
+
+        if ($this->hasSameDateBookingConflict($bookingList->room_id, $request->date, $request->start, $request->end, $id)) {
+            return redirect()->back()->withErrors(['error' => 'Booking pada tanggal yang sama harus memiliki jarak minimal 1 jam dengan booking lain.'])->withInput();
+        }
+
+        if ($bookingList->status === 'approved') {
+            RoomBooking::where('booking_id', $bookingList->id)->delete();
+        }
+
         $bookingList->update([
             'date' => $request->date,
             'start' => $request->start,
@@ -97,6 +146,29 @@ class BookingListController extends Controller
         ]);
 
         return redirect()->route('book-list')->with('success', 'Berhasil Edit Data Booking');
+    }
+
+    private function hasSameDateBookingConflict($roomId, $date, $start, $end, $excludeId = null)
+    {
+        $newStart = Carbon::createFromFormat('H:i', $start);
+        $newEnd = Carbon::createFromFormat('H:i', $end);
+
+        $bookings = BookingList::where('room_id', $roomId)
+            ->where('date', $date)
+            ->where('status', '!=', 'canceled')
+            ->when($excludeId, fn($query) => $query->where('id', '!=', $excludeId))
+            ->get();
+
+        foreach ($bookings as $booking) {
+            $existingStart = Carbon::createFromFormat('H:i', $booking->start->format('H:i'));
+            $existingEnd = Carbon::createFromFormat('H:i', $booking->end->format('H:i'));
+
+            if ($newStart->lt($existingEnd->copy()->addHour()) && $newEnd->gt($existingStart->copy()->subHour())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

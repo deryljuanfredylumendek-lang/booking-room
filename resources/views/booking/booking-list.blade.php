@@ -43,7 +43,7 @@
   <div class="card">
     <h5 class="card-header">Booking List 
       @admin @else 
-        <a href="{{ route('booking.create') }}"><button class="btn rounded-pill btn-primary float-end mx-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 26 26" style="fill: rgba(255, 255, 255, 1);transform: ;msFilter:;"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg> Booking List</button></a>
+        <a href="{{ route('booking.create') }}"><button class="btn rounded-pill btn-primary float-end mx-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 26 26" style="fill: rgba(255, 255, 255, 1);"><path d="M19 11h-6V5h-2v6H5v2h6v6h2v-6h6z"></path></svg> Booking List</button></a>
       @endadmin
     </h5>
     <div id="load-table"></div>
@@ -76,24 +76,33 @@
     }
 
     function openModal(id, room, action) {
-      $('#title-modal').text('Konfirmasi Penyewaan')
       if (action == 'setuju') {
-        var text = 'setujui'
+        $('#title-modal').text('Konfirmasi Penyewaan')
+        $('#text-modal').html(`Yakin <em>setujui</em> penyewaan ini?`)
+        $('#btn-modal').text('setuju')
+        $('#btn-modal').attr('onclick', `approving(${id}, ${room})`)
       } else if (action == 'tolak') {
-        var text = action
+        $('#title-modal').text('Penawaran Ubah Jadwal Penyewaan')
+        $('#text-modal').html(`<div class="mb-3">
+                        <label for="msg-input" class="form-label">Catatan Rescheduled</label>
+                        <textarea class="form-control" name="message" id="msg-input" placeholder="Pesan..." required></textarea>
+                      </div>`)
+        $('#btn-modal').text('Kirim')
+        $('#btn-modal').attr('onclick', `rejecting(${id}, ${room})`)
       } else if (action == 'batalkan') {
-        var text = action
+        $('#title-modal').text('Konfirmasi Pembatalan')
+        $('#text-modal').html(`Yakin <em>batalkan</em> penyewaan ini?`)
+        $('#btn-modal').text('batalkan')
+        $('#btn-modal').attr('onclick', `canceling(${id})`)
+      } else if (action == 'reschedule') {
+        $('#title-modal').text('Minta Reschedule Booking')
+        $('#text-modal').html(`<div class="mb-3">
+                          <label for="msg-input" class="form-label">Alasan Reschedule</label>
+                          <textarea class="form-control" name="message" id="msg-input" placeholder="Tuliskan alasan reschedule..." required></textarea>
+                        </div>`)
+        $('#btn-modal').text('Kirim')
+        $('#btn-modal').attr('onclick', `rescheduling(${id})`)
       }
-      $('#text-modal').html(`Yakin <em>${text}</em> Penyewaan?`)
-      $('#btn-modal').text(`${action}`)
-      if (action == 'setuju') {
-        var onclick = `approving(${id}, ${room})`
-      } else if (action == 'tolak') {
-        var onclick = `modalReject(${id}, ${room})`
-      } else if (action == 'batalkan') {
-        var onclick = `canceling(${id})`
-      }
-      $('#btn-modal').attr('onclick', onclick)
       $('#modalAction').modal('toggle')
     }
 
@@ -152,6 +161,30 @@
       } catch (error) {
         console.log(error)
         notif('error', error)
+      }
+    }
+
+    async function rescheduling(id) {
+      try {
+        var msg = $('#msg-input').val()
+        if (!msg || msg.trim().length < 5) {
+          notif('error', 'Silakan masukkan alasan reschedule minimal 5 karakter.')
+          return
+        }
+        var url = `/booking/${id}/request-reschedule`
+        data = {
+          message: msg,
+        }
+        const response = await HitData(url, data, "GET");
+        notif('success', response.message)
+        $('#modalAction').modal('toggle')
+        getList()
+        if (response.url) {
+          location.href = response.url
+        }
+      } catch (error) {
+        console.log(error)
+        notif('error', error.responseJSON?.message || error)
       }
     }
   </script>
