@@ -9,6 +9,7 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoomController;
 use App\Http\Controllers\RouteController;
 use App\Http\Controllers\UserController;
+use App\Models\Room;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,7 +23,11 @@ use App\Http\Controllers\UserController;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    $rooms = Room::where('status', 'able')->take(3)->get();
+    if ($rooms->isEmpty()) {
+        $rooms = Room::take(3)->get();
+    }
+    return view('welcome', compact('rooms'));
 });
 
 

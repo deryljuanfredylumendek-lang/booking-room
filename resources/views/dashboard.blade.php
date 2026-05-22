@@ -35,20 +35,8 @@
               <h3 class="card-title mb-3">{{ $rejected }}</h3>
             </div>
             <div class="col-4 text-center">
-              <span class="fw-semibold d-block mb-1 text-capitalize">Digunakan</span>
-              <h3 class="card-title mb-3">{{ $used }}</h3>
-            </div>
-            <div class="col-4 text-center">
               <span class="fw-semibold d-block mb-1 text-capitalize">Dibatalkan</span>
               <h3 class="card-title mb-3">{{ $canceled }}</h3>
-            </div>
-            <div class="col-4 text-center">
-              <span class="fw-semibold d-block mb-1 text-capitalize">Selesai</span>
-              <h3 class="card-title mb-3">{{ $done }}</h3>
-            </div>
-            <div class="col-4 text-center">
-              <span class="fw-semibold d-block mb-1 text-capitalize">Expired</span>
-              <h3 class="card-title mb-3">{{ $expired }}</h3>
             </div>
             <div class="col-4 text-center">
               <span class="fw-semibold d-block mb-1 text-capitalize">Ubah Jadwal</span>
